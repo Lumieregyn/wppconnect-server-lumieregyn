@@ -1,1 +1,1 @@
-# WppConnect Server com Dockerfile para Railway
+# WppConnect com Chromium pré-instalado para Railway

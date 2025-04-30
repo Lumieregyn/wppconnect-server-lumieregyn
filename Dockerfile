@@ -1,21 +1,13 @@
-FROM node:18-slim
+FROM browserless/chrome:latest
 
-# Instala dependências do Chromium
-RUN apt-get update && apt-get install -y     wget gnupg ca-certificates fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0     libatk1.0-0 libcups2 libdbus-1-3 libgdk-pixbuf2.0-0 libnspr4 libnss3 libx11-xcb1     libxcomposite1 libxdamage1 libxrandr2 xdg-utils libu2f-udev libvulkan1     chromium && rm -rf /var/lib/apt/lists/*
-
-# Criar diretório de app
 WORKDIR /app
 
-# Copiar arquivos
-COPY package*.json ./
-COPY index.js ./
+COPY package.json ./
 COPY .env.example ./
+COPY index.js ./
 
-# Instalar dependências
 RUN npm install
 
-# Expor porta
 EXPOSE 3000
 
-# Comando para iniciar
-CMD ["npm", "start"]
+CMD ["node", "index.js"]
