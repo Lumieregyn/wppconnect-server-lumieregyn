@@ -1,1 +1,1 @@
-README para wppconnect
+# WppConnect Server com Dockerfile para Railway
