@@ -1,13 +1,11 @@
-FROM browserless/chrome:latest
+FROM node:18
 
 WORKDIR /app
 
 COPY package.json ./
-COPY .env.example ./
-COPY index.js ./
-
 RUN npm install
 
-EXPOSE 3000
+COPY . .
 
-CMD ["node", "index.js"]
+EXPOSE 3000
+CMD ["npm", "start"]
