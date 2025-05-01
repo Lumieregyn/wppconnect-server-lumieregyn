@@ -1,48 +1,54 @@
+// index.js restaurado conforme versão original estável
 const express = require("express");
-const { createServer } = require("http");
-const { Server } = require("socket.io");
-const { create } = require('@wppconnect-team/wppconnect');
+const { create } = require("@wppconnect-team/wppconnect");
+const path = require("path");
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer);
+const PORT = process.env.PORT || 3000;
 
-let qrCodeBase64 = '[QR Code Aqui]';
+let qrCodeImage = "";
 
 create({
   session: 'default',
-  catchQR: (base64Qr) => {
-    qrCodeBase64 = base64Qr;
-    io.emit("qr", base64Qr);
-    console.log("QR Code atualizado.");
+  catchQR: (base64Qr, asciiQR, attempts, urlCode) => {
+    qrCodeImage = base64Qr;
+    console.log("QR Code recebido");
   },
   statusFind: (statusSession, session) => {
-    console.log("Status da sessão:", statusSession);
+    console.log(`Status da sessão: ${statusSession}`);
   },
   headless: true,
   devtools: false,
   useChrome: true,
-  browserArgs: [''],
-}).then((client) => {
-  io.emit("ready", "Cliente conectado.");
-  client.onMessage((message) => {
-    console.log("Mensagem recebida:", message.body);
-    io.emit("mensagem", message.body);
+  browserArgs: [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    '--disable-accelerated-2d-canvas',
+    '--no-first-run',
+    '--no-zygote',
+    '--single-process',
+    '--disable-gpu'
+  ]
+}).then(client => {
+  app.get("/qr", (req, res) => {
+    if (!qrCodeImage) return res.send("<h1>QR Code ainda não gerado</h1>");
+    res.send(`
+      <html>
+        <body>
+          <h1>Escaneie o QR Code abaixo:</h1>
+          <img src="${qrCodeImage}" width="300" />
+        </body>
+      </html>
+    `);
   });
-});
 
-app.get("/qr", (req, res) => {
-  res.send(`
-    <html>
-      <body>
-        <h1>Escaneie o QR Code abaixo:</h1>
-        <img src="${qrCodeBase64}" width="300"/>
-      </body>
-    </html>
-  `);
-});
+  app.get("/", (req, res) => {
+    res.send("Servidor do WppConnect está online!");
+  });
 
-const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log("Servidor rodando na porta", PORT);
-});
+  app.listen(PORT, () => {
+    console.log("Servidor do WppConnect rodando na porta", PORT);
+  });
+
+}).catch(err => console.error("Erro ao iniciar o WppConnect:", err));
