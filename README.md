@@ -1,1 +1,0 @@
-README para wppconnect
