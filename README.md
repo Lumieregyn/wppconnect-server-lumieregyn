@@ -1,1 +1,1 @@
-# WppConnect com Chromium pré-instalado para Railway
+README para wppconnect
