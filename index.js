@@ -6,6 +6,7 @@ require("dotenv").config();
 const app = express();
 let client;
 
+// Inicializa WppConnect
 create({
   session: "default",
   catchQR: (base64Qrimg, asciiQR) => {
@@ -18,17 +19,19 @@ create({
 }).then((cli) => {
   client = cli;
 
-  // Teste direto opcional (remova depois de validar)
+  // Teste direto ao grupo (opcional):
   // setTimeout(() => {
-  //   client.sendText("120363416457397022@g.us", "🚀 Teste direto do bot após conexão");
+  //   client.sendText("120363416457397022@g.us", "✅ Teste direto via bot");
   // }, 10000);
 });
 
+// Middleware JSON
 app.use(express.json());
 
-// ✅ Serve o painel HTML (público)
+// ✅ Middleware para servir HTML estático da pasta /public
 app.use(express.static(path.join(__dirname, "public")));
 
+// QR Code visual via navegador
 app.get("/qr", (req, res) => {
   if (global.qrCodeImage) {
     res.send(`
@@ -36,9 +39,7 @@ app.get("/qr", (req, res) => {
         <body>
           <h2>QR Code para conectar o WhatsApp</h2>
           <img src="${global.qrCodeImage}" />
-          <script>
-            setTimeout(() => window.location.reload(), 60000);
-          </script>
+          <script>setTimeout(() => window.location.reload(), 60000);</script>
         </body>
       </html>
     `);
@@ -47,6 +48,7 @@ app.get("/qr", (req, res) => {
   }
 });
 
+// Checa status da sessão
 app.get("/status", (req, res) => {
   if (!client) return res.json({ status: "Aguardando inicialização..." });
   client.getConnectionState().then((state) => {
@@ -54,6 +56,7 @@ app.get("/status", (req, res) => {
   });
 });
 
+// ✅ Envio de mensagens para contatos e grupos
 app.post("/send-message", async (req, res) => {
   try {
     const { number, message } = req.body;
@@ -68,6 +71,7 @@ app.post("/send-message", async (req, res) => {
   }
 });
 
+// Lista todos os grupos sincronizados
 app.get("/listar-grupos", async (req, res) => {
   try {
     if (!client) return res.status(500).json({ error: "Cliente não conectado." });
