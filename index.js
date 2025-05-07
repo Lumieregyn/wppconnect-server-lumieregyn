@@ -49,7 +49,7 @@ app.post("/send-message", async (req, res) => {
   try {
     const { number, message } = req.body;
     if (!client) return res.status(500).json({ error: "Cliente não conectado." });
-    await client.sendText(number, message);
+    await client.sendText(String(number).trim(), message);
     res.json({ status: "Mensagem enviada com sucesso." });
   } catch (err) {
     console.error(err);
