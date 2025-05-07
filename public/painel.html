@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Disparo Manual - Gerente Comercial IA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: 40px auto;
+    }
+    input, textarea, button {
+      width: 100%;
+      padding: 12px;
+      margin: 10px 0;
+      font-size: 16px;
+    }
+    #status {
+      margin-top: 20px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>📲 Enviar mensagem manual (Bot WppConnect)</h2>
+  
+  <label for="number">Número ou ID do grupo:</label>
+  <input type="text" id="number" placeholder="Ex: 556299999999@c.us ou 12036xxxxx@g.us" />
+
+  <label for="message">Mensagem:</label>
+  <textarea id="message" rows="4" placeholder="Digite sua mensagem..."></textarea>
+
+  <button onclick="enviarMensagem()">🚀 Enviar Mensagem</button>
+
+  <div id="status"></div>
+
+  <script>
+    async function enviarMensagem() {
+      const number = document.getElementById("number").value.trim();
+      const message = document.getElementById("message").value.trim();
+      const statusDiv = document.getElementById("status");
+
+      if (!number || !message) {
+        statusDiv.textContent = "Preencha todos os campos.";
+        return;
+      }
+
+      statusDiv.textContent = "Enviando...";
+
+      try {
+        const response = await fetch("https://wppconnect-server-lumieregyn-production.up.railway.app/send-message", {
+
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ number, message })
+        });
+
+        const data = await response.json();
+        statusDiv.textContent = data.status || data.error || "Erro desconhecido.";
+      } catch (err) {
+        statusDiv.textContent = "Erro ao enviar: " + err.message;
+      }
+    }
+  </script>
+</body>
+</html>
