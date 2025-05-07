@@ -57,6 +57,21 @@ app.post("/send-message", async (req, res) => {
   }
 });
 
+// ✅ NOVA ROTA para listar grupos conectados
+app.get("/listar-grupos", async (req, res) => {
+  try {
+    if (!client) return res.status(500).json({ error: "Cliente não conectado." });
+    const grupos = await client.getAllGroups();
+    res.json(grupos.map(grupo => ({
+      name: grupo.name,
+      id: grupo.id
+    })));
+  } catch (err) {
+    console.error("[ERRO LISTAR GRUPOS]", err.message);
+    res.status(500).json({ error: "Erro ao listar grupos." });
+  }
+});
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("WppConnect server rodando na porta", PORT);
