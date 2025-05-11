@@ -26,29 +26,36 @@ create({
       if (!msg.isGroupMsg) {
         console.log("[RECEBIDO]", msg.from, msg.body);
 
-        await fetch("https://gerente-comercial-ia-production.up.railway.app/conversa", {
+        const payload = {
+          payload: {
+            user: {
+              Name: msg.sender?.pushname || "Cliente",
+              Phone: msg.from.replace("@c.us", "")
+            },
+            message: {
+              text: msg.body,
+              CreatedAt: new Date().toISOString()
+            },
+            attendant: {
+              Name: "Bot"
+            },
+            channel: "whatsapp"
+          }
+        };
+
+        console.log("[➡️ REDIRECIONANDO]", JSON.stringify(payload, null, 2));
+
+        const response = await fetch("https://gerente-comercial-ia-production.up.railway.app/conversa", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            payload: {
-              user: {
-                Name: msg.sender?.pushname || "Cliente",
-                Phone: msg.from.replace("@c.us", "")
-              },
-              message: {
-                text: msg.body,
-                CreatedAt: new Date().toISOString()
-              },
-              attendant: {
-                Name: "Bot"
-              },
-              channel: "whatsapp"
-            }
-          })
+          body: JSON.stringify(payload)
         });
+
+        const respText = await response.text();
+        console.log("[✅ RESPOSTA IA]", response.status, respText);
       }
     } catch (err) {
-      console.error("[ERRO REDIRECIONANDO MENSAGEM]", err.message);
+      console.error("[❌ ERRO NO FETCH]", err);
     }
   });
 });
