@@ -19,10 +19,37 @@ create({
 }).then((cli) => {
   client = cli;
 
-  // Teste direto ao grupo (opcional):
-  // setTimeout(() => {
-  //   client.sendText("120363416457397022@g.us", "✅ Teste direto via bot");
-  // }, 10000);
+  // ✅ Escuta mensagens recebidas e envia para o Gerente Comercial IA
+  cli.onMessage(async (msg) => {
+    try {
+      if (!msg.isGroupMsg) {
+        console.log("[RECEBIDO]", msg.from, msg.body);
+
+        await fetch("https://gerente-comercial-ia-production.up.railway.app/conversa", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            payload: {
+              user: {
+                Name: msg.sender?.pushname || "Cliente",
+                Phone: msg.from.replace("@c.us", "")
+              },
+              message: {
+                text: msg.body,
+                CreatedAt: new Date().toISOString()
+              },
+              attendant: {
+                Name: "Bot"
+              },
+              channel: "whatsapp"
+            }
+          })
+        });
+      }
+    } catch (err) {
+      console.error("[ERRO REDIRECIONANDO MENSAGEM]", err.message);
+    }
+  });
 });
 
 // Middleware JSON
@@ -63,7 +90,6 @@ app.post("/send-message", async (req, res) => {
     if (!client) return res.status(500).json({ error: "Cliente não conectado." });
 
     await client.sendText(String(number).trim(), message);
-
     res.json({ status: "Mensagem enviada com sucesso." });
   } catch (err) {
     console.error("[ERRO ENVIAR]", err.message);
