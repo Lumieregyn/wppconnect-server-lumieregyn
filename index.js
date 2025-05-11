@@ -7,6 +7,9 @@ require("dotenv").config();
 const app = express();
 let client;
 
+// ID real do grupo de gestores autorizado (substitua se mudar o grupo)
+const grupoPermitido = "120363416457397022@g.us";
+
 // Inicializa WppConnect
 create({
   session: "default",
@@ -23,21 +26,24 @@ create({
   // ✅ Escuta mensagens recebidas e envia para o Gerente Comercial IA
   cli.onMessage(async (msg) => {
     try {
-      if (!msg.isGroupMsg) {
+      const fromGrupoAutorizado = msg.isGroupMsg && msg.from === grupoPermitido;
+      const isPrivado = !msg.isGroupMsg;
+
+      if (isPrivado || fromGrupoAutorizado) {
         console.log("[RECEBIDO]", msg.from, msg.body);
 
         const payload = {
           payload: {
             user: {
               Name: msg.sender?.pushname || "Cliente",
-              Phone: msg.from.replace("@c.us", "")
+              Phone: msg.from.replace("@c.us", "").replace("@g.us", "")
             },
             message: {
               text: msg.body,
               CreatedAt: new Date().toISOString()
             },
             attendant: {
-              Name: "Bot"
+              Name: msg.isGroupMsg ? "Grupo Gestores" : "Bot"
             },
             channel: "whatsapp"
           }
@@ -63,7 +69,7 @@ create({
 // Middleware JSON
 app.use(express.json());
 
-// ✅ Middleware para servir HTML estático da pasta /public
+// Middleware para servir HTML estático da pasta /public
 app.use(express.static(path.join(__dirname, "public")));
 
 // QR Code visual via navegador
@@ -91,7 +97,7 @@ app.get("/status", (req, res) => {
   });
 });
 
-// ✅ Envio de mensagens para contatos e grupos
+// Envio de mensagens
 app.post("/send-message", async (req, res) => {
   try {
     const { number, message } = req.body;
@@ -105,7 +111,7 @@ app.post("/send-message", async (req, res) => {
   }
 });
 
-// Lista todos os grupos sincronizados
+// Lista de grupos
 app.get("/listar-grupos", async (req, res) => {
   try {
     if (!client) return res.status(500).json({ error: "Cliente não conectado." });
