@@ -7,10 +7,8 @@ require("dotenv").config();
 const app = express();
 let client;
 
-// ID real do grupo de gestores autorizado (substitua se mudar o grupo)
 const grupoPermitido = "120363416457397022@g.us";
 
-// Inicializa WppConnect
 create({
   session: "default",
   catchQR: (base64Qrimg, asciiQR) => {
@@ -19,11 +17,13 @@ create({
   statusFind: (statusSession, session) => {
     console.log("Status da sessão:", statusSession);
   },
-  headless: true
+  headless: true,
+  puppeteerOptions: {
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
+  }
 }).then((cli) => {
   client = cli;
 
-  // ✅ Escuta mensagens recebidas e envia para o Gerente Comercial IA
   cli.onMessage(async (msg) => {
     try {
       const fromGrupoAutorizado = msg.isGroupMsg && msg.from === grupoPermitido;
@@ -66,13 +66,9 @@ create({
   });
 });
 
-// Middleware JSON
 app.use(express.json());
-
-// Middleware para servir HTML estático da pasta /public
 app.use(express.static(path.join(__dirname, "public")));
 
-// QR Code visual via navegador
 app.get("/qr", (req, res) => {
   if (global.qrCodeImage) {
     res.send(`
@@ -89,7 +85,6 @@ app.get("/qr", (req, res) => {
   }
 });
 
-// Checa status da sessão
 app.get("/status", (req, res) => {
   if (!client) return res.json({ status: "Aguardando inicialização..." });
   client.getConnectionState().then((state) => {
@@ -97,7 +92,6 @@ app.get("/status", (req, res) => {
   });
 });
 
-// Envio de mensagens
 app.post("/send-message", async (req, res) => {
   try {
     const { number, message } = req.body;
@@ -111,7 +105,6 @@ app.post("/send-message", async (req, res) => {
   }
 });
 
-// Lista de grupos
 app.get("/listar-grupos", async (req, res) => {
   try {
     if (!client) return res.status(500).json({ error: "Cliente não conectado." });
