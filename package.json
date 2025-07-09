@@ -1,6 +1,6 @@
 {
   "name": "wppconnect-server-lumieregyn",
-  "version": "1.0.0",
+  "version": "1.9.0",
   "description": "Servidor de integração WppConnect para LumièreGyn",
   "main": "index.js",
   "scripts": {
